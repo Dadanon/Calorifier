@@ -119,13 +119,13 @@ class _WeightInputDialogState extends State<WeightInputDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Добавлено: ${widget.food.name}'),
+      title: Text('${widget.food.name}'),
       content: TextFormField(
         controller: _controller,
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
-          labelText: widget.food.weight == null ? 'Weight (g/ml)' : 'Quantity',
-          suffixText: widget.food.weight == null ? 'g/ml' : 'units',
+          labelText: widget.food.weight == null ? 'Вес/объём' : 'Количество',
+          suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
         ),
       ),
       actions: [
