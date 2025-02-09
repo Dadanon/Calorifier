@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: Text(
                       entry.food.weight == null
                           ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                          : '${entry.weight} шт. • ${entry.kcalTotal}ккал',
+                          : '${entry.weight}шт. • ${entry.kcalTotal}ккал',
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.edit),
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Общая калорийность: ${context.watch<DiaryProvider>().totalKcal} ккал',
+              'Всего: ${context.watch<DiaryProvider>().totalKcal} ккал',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),

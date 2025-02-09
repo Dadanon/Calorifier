@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:calorifier/database_helper.dart';
 import 'package:calorifier/providers.dart';
@@ -6,6 +7,10 @@ import 'package:calorifier/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Ограничение ориентации
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   final database = await DatabaseHelper.init();
   runApp(
     MultiProvider(
