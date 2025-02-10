@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import '../providers.dart';
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Calorifier'),
         actions: [
+          Text(DateFormat('dd MMMM yyyy').format(_focusedDay)),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => _navigateToCreateFood(context),

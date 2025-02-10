@@ -24,7 +24,7 @@ class _EditEntryDialogState extends State<EditEntryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Edit ${widget.entry.food.name}'),
+      title: Text('Изменить ${widget.entry.food.name}'),
       content: TextFormField(
         controller: _controller,
         keyboardType: TextInputType.number,
