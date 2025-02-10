@@ -119,7 +119,7 @@ class _WeightInputDialogState extends State<WeightInputDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('${widget.food.name}'),
+      title: Text(widget.food.name),
       content: TextFormField(
         controller: _controller,
         keyboardType: TextInputType.number,
