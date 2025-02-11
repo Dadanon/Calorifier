@@ -45,6 +45,25 @@ class FoodProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateFood(Food updatedFood) async {
+    await database.update(
+      'foods',
+      updatedFood.toMap(),
+      where: 'id = ?',
+      whereArgs: [updatedFood.id],
+    );
+    await loadFoods();
+  }
+
+  Future<void> deleteFood(int foodId) async {
+    await database.delete(
+      'foods',
+      where: 'id = ?',
+      whereArgs: [foodId],
+    );
+    await loadFoods();
+  }
+
   Future<void> loadRecentFoods() async {
     final maps = await database.query(
       'recent_foods',

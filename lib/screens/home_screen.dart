@@ -1,3 +1,4 @@
+import 'package:calorifier/screens/food_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Calorifier'),
         actions: [
-          Text(DateFormat('dd MMMM yyyy').format(_focusedDay)),
+          Text(DateFormat.yMMMMd('ru_RU').format(_focusedDay)),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => _navigateToCreateFood(context),
@@ -44,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           TableCalendar(
+            locale: 'ru_RU',
             firstDay: DateTime(2000),
             lastDay: DateTime(2050),
             focusedDay: _focusedDay,
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: Text(
                       entry.food.weight == null
                           ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                          : '${entry.weight}шт. • ${entry.kcalTotal}ккал',
+                          : '${entry.weight}шт. • ${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.edit),

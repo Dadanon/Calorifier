@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:calorifier/database_helper.dart';
 import 'package:calorifier/providers.dart';
@@ -12,6 +13,7 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
   final database = await DatabaseHelper.init();
+  await initializeDateFormatting('ru_RU', null);
   runApp(
     MultiProvider(
       providers: [
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      locale: const Locale('ru', 'RU'),
       title: 'Calorifier',
       theme: ThemeData(
         primarySwatch: Colors.blue,
