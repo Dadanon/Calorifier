@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: Text(
                       entry.food.weight == null
                           ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                          : '${entry.weight}шт. • ${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
+                          : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.edit),

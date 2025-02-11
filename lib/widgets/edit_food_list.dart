@@ -39,6 +39,16 @@ class _EditFoodListState extends State<EditFoodList> {
                         title: Text(food.name,
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Row(
+                          children: [
+                            if (food.weight != null)
+                              Text('${food.weight}г. * '),
+                            if (food.kcalPerHundred != null)
+                              Text('${food.kcalPerHundred} ккал/100г'),
+                            if (food.kcalTotal != null)
+                              Text('${food.kcalTotal}ккал')
+                          ],
+                        ),
                       ));
                 },
               ),
