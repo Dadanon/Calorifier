@@ -1,4 +1,3 @@
-import 'package:calorifier/screens/food_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -33,7 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calorifier'),
+        title: const Image(
+          image: AssetImage('assets/icons/glory_carrot.png'),
+          height: 32,
+        ),
         actions: [
           Text(DateFormat.yMMMMd('ru_RU').format(_focusedDay)),
           IconButton(
@@ -46,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           TableCalendar(
             locale: 'ru_RU',
+            calendarFormat: CalendarFormat.twoWeeks,
+            headerStyle: HeaderStyle(formatButtonVisible: false),
             firstDay: DateTime(2000),
             lastDay: DateTime(2050),
             focusedDay: _focusedDay,
