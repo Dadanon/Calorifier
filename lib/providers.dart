@@ -13,6 +13,7 @@ class FoodProvider with ChangeNotifier {
 
   List<Food> get searchResults => _searchResults;
   List<Food> get recentFoods => _recentFoods;
+  List<Food> get foods => _foods;
 
   Future<void> loadFoods() async {
     final List<Map<String, dynamic>> maps = await database.query('foods');

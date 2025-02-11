@@ -32,12 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Image(
-          image: AssetImage('assets/icons/glory_carrot.png'),
-          height: 32,
-        ),
+        title: Text(DateFormat.yMMMMd('ru_RU').format(_focusedDay)),
         actions: [
-          Text(DateFormat.yMMMMd('ru_RU').format(_focusedDay)),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => _navigateToCreateFood(context),
