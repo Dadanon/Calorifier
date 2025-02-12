@@ -1,3 +1,4 @@
+import 'package:calorifier/widgets/edit_food_dialog.dart';
 import 'package:calorifier/widgets/edit_food_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +50,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(labelText: 'Название'),
-                    validator: (value) => value!.isEmpty ? 'Required' : null,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Введите имя продукта' : null,
                   ),
                   SwitchListTile(
                     title: const Text('Порция'),
@@ -65,7 +67,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                         suffixText: 'ккал',
                       ),
                       keyboardType: TextInputType.number,
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Введите значение' : null,
                     )
                   else
                     Column(
@@ -78,7 +81,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                           ),
                           keyboardType: TextInputType.number,
                           validator: (value) =>
-                              value!.isEmpty ? 'Required' : null,
+                              value!.isEmpty ? 'Введите вес продукта' : null,
                         ),
                         TextFormField(
                           controller: _kcalController,
@@ -88,7 +91,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                           ),
                           keyboardType: TextInputType.number,
                           validator: (value) =>
-                              value!.isEmpty ? 'Required' : null,
+                              value!.isEmpty ? 'Введите значение' : null,
                         ),
                       ],
                     ),
