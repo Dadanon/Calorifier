@@ -108,6 +108,30 @@ class DiaryProvider with ChangeNotifier {
   List<DiaryEntry> get entries => _entries;
   int get totalKcal => _entries.fold(0, (sum, entry) => sum + entry.kcalTotal);
 
+  Future<void> reloadEntriesOnFoodDelete(int foodId) async {
+    _entries = _entries.where((entry) => entry.food.id != foodId).toList();
+  }
+
+  Future<void> updateEntriesForFood(Food updatedFood) async {
+    // Создаём новый список записей
+    final newEntries = _entries.map((entry) {
+      if (entry.food.id == updatedFood.id) {
+        // Создаём новую запись с обновлённым продуктом
+        return DiaryEntry(
+          id: entry.id,
+          food: updatedFood,
+          date: entry.date,
+          weight: entry.weight,
+        );
+      }
+      return entry;
+    }).toList();
+
+    // Обновляем кэш и уведомляем слушателей
+    _entries = newEntries;
+    notifyListeners();
+  }
+
   Future<void> loadEntries(DateTime date) async {
     _selectedDate = date;
     final formattedDate = _formatDate(date);

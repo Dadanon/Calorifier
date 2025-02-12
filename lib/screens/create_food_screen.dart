@@ -1,4 +1,3 @@
-import 'package:calorifier/widgets/edit_food_dialog.dart';
 import 'package:calorifier/widgets/edit_food_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

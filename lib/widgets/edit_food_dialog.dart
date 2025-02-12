@@ -17,7 +17,27 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _kcalController = TextEditingController();
-  bool _isPortionBased = true;
+  late bool
+      _isPortionBased; // Салат весовой - это portionBased, а Adrenaline 0.33 - это НЕ portionBased
+
+  @override
+  void initState() {
+    /* 
+    Сразу объясним:
+    Весовой салат (_isPortionBased = true): weight = null, kcalPerHundred != null, kcalTotal = null
+    Adrenaline Rush 0.33 (_isPortionBased = false): weight != null, kcalPerHundred = null, kcalTotal != null
+     */
+    super.initState();
+    _isPortionBased = widget.food.weight == null ? true : false;
+    _nameController.text = widget.food.name;
+
+    _weightController.text =
+        _isPortionBased ? '' : widget.food.weight.toString();
+
+    _kcalController.text = _isPortionBased
+        ? widget.food.kcalPerHundred.toString()
+        : widget.food.kcalTotal.toString();
+  }
 
   @override
   void dispose() {
@@ -33,13 +53,17 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
     final updatedFood = Food(
       id: widget.food.id,
       name: _nameController.text,
-      weight: _isPortionBased ? null : int.parse(_weightController.text),
+      weight: _weightController.text == ''
+          ? null
+          : int.parse(_weightController.text),
       kcalPerHundred: _isPortionBased ? int.parse(_kcalController.text) : null,
       kcalTotal: _isPortionBased ? null : int.parse(_kcalController.text),
     );
 
     try {
       await context.read<FoodProvider>().updateFood(updatedFood);
+      await context.read<DiaryProvider>().updateEntriesForFood(updatedFood);
+      await context.read<FoodProvider>().loadRecentFoods();
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,6 +75,10 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
   void _deleteFood() async {
     try {
       await context.read<FoodProvider>().deleteFood(widget.food.id);
+      await context
+          .read<DiaryProvider>()
+          .reloadEntriesOnFoodDelete(widget.food.id);
+      await context.read<FoodProvider>().loadRecentFoods();
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +90,6 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Изменить ${widget.food.name}'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -72,11 +99,6 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
               decoration: const InputDecoration(labelText: 'Название'),
               validator: (value) =>
                   value!.isEmpty ? 'Введите имя продукта' : null,
-            ),
-            SwitchListTile(
-              title: const Text('Порция'),
-              value: _isPortionBased,
-              onChanged: (value) => setState(() => _isPortionBased = value),
             ),
             if (_isPortionBased)
               TextFormField(

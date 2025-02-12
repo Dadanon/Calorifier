@@ -35,38 +35,36 @@ class _EditFoodListState extends State<EditFoodList> {
             ),
             SizedBox(
               height: 400, // Фиксированная высота или MediaQuery
-              child: Consumer<FoodProvider>(
-                  builder: (context, provider, child) => ListView.builder(
-                        shrinkWrap: true,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: provider.foods.length,
-                        itemBuilder: (context, index) {
-                          final food = provider.foods[index];
-                          return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 8),
-                              child: ListTile(
-                                title: Text(food.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
-                                subtitle: Row(
-                                  children: [
-                                    if (food.weight != null)
-                                      Text('${food.weight}г. * '),
-                                    if (food.kcalPerHundred != null)
-                                      Text('${food.kcalPerHundred} ккал/100г'),
-                                    if (food.kcalTotal != null)
-                                      Text('${food.kcalTotal}ккал')
-                                  ],
-                                ),
-                                trailing: const IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () =>
-                                      _showEditFoodDialog(context, food),
-                                ),
-                              ));
-                        },
-                      )),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: provider.foods.length,
+                itemBuilder: (context, index) {
+                  final food = provider.foods[index];
+                  return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 8),
+                      child: ListTile(
+                        title: Text(food.name,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Row(
+                          children: [
+                            if (food.weight != null)
+                              Text('${food.weight}г. * '),
+                            if (food.kcalPerHundred != null)
+                              Text('${food.kcalPerHundred} ккал/100г'),
+                            if (food.kcalTotal != null)
+                              Text('${food.kcalTotal}ккал')
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () => _showEditFoodDialog(context, food),
+                        ),
+                      ));
+                },
+              ),
             ),
           ],
         );
