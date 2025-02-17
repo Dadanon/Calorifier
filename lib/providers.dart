@@ -5,11 +5,12 @@ import 'models.dart';
 
 class FoodProvider with ChangeNotifier {
   final Database database;
+  final DiaryProvider diaryProvider;
   List<Food> _foods = [];
   List<Food> _searchResults = [];
   List<Food> _recentFoods = [];
 
-  FoodProvider(this.database);
+  FoodProvider(this.database, this.diaryProvider);
 
   List<Food> get searchResults => _searchResults;
   List<Food> get recentFoods => _recentFoods;
@@ -65,6 +66,12 @@ class FoodProvider with ChangeNotifier {
     await loadFoods();
   }
 
+  Future<void> deleteRelatedRecentFoods(int foodId) async {
+    await database
+        .delete('recent_foods', where: 'food_id = ?', whereArgs: [foodId]);
+    _recentFoods = _recentFoods.where((recent) => recent.id != foodId).toList();
+  }
+
   Future<void> loadRecentFoods() async {
     final maps = await database.query(
       'recent_foods',
@@ -107,10 +114,6 @@ class DiaryProvider with ChangeNotifier {
 
   List<DiaryEntry> get entries => _entries;
   int get totalKcal => _entries.fold(0, (sum, entry) => sum + entry.kcalTotal);
-
-  Future<void> reloadEntriesOnFoodDelete(int foodId) async {
-    _entries = _entries.where((entry) => entry.food.id != foodId).toList();
-  }
 
   Future<void> updateEntriesForFood(Food updatedFood) async {
     // Создаём новый список записей
@@ -183,6 +186,12 @@ class DiaryProvider with ChangeNotifier {
     );
 
     await loadEntries(_selectedDate);
+  }
+
+  Future<void> deleteRelatedEntries(int foodId) async {
+    await database.delete('diary', where: 'food_id = ?', whereArgs: [foodId]);
+    _entries = _entries.where((entry) => entry.food.id != foodId).toList();
+    notifyListeners();
   }
 
   String _formatDate(DateTime date) =>

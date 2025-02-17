@@ -75,10 +75,10 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
   void _deleteFood() async {
     try {
       await context.read<FoodProvider>().deleteFood(widget.food.id);
+      await context.read<DiaryProvider>().deleteRelatedEntries(widget.food.id);
       await context
-          .read<DiaryProvider>()
-          .reloadEntriesOnFoodDelete(widget.food.id);
-      await context.read<FoodProvider>().loadRecentFoods();
+          .read<FoodProvider>()
+          .deleteRelatedRecentFoods(widget.food.id);
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

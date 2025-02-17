@@ -13,14 +13,15 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
   final database = await DatabaseHelper.init();
-  final foodProvider = FoodProvider(database);
+  final diaryProvider = DiaryProvider(database);
+  final foodProvider = FoodProvider(database, diaryProvider);
   await foodProvider.loadFoods();
   await initializeDateFormatting('ru_RU', null);
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => diaryProvider),
         ChangeNotifierProvider(create: (_) => foodProvider),
-        ChangeNotifierProvider(create: (_) => DiaryProvider(database)),
       ],
       child: const MyApp(),
     ),
