@@ -30,9 +30,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
-    - assets/icons/glory_carrot.png
-
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/icons/glory_carrot.png" # Путь к вашей иконке 1024x1024
