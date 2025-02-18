@@ -16,6 +16,7 @@ void main() async {
   final diaryProvider = DiaryProvider(database);
   final foodProvider = FoodProvider(database, diaryProvider);
   await foodProvider.loadFoods();
+  await diaryProvider.loadEntries(diaryProvider.selectedDate);
   await initializeDateFormatting('ru_RU', null);
   runApp(
     MultiProvider(

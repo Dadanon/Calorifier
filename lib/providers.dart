@@ -135,6 +135,8 @@ class DiaryProvider with ChangeNotifier {
   List<DiaryEntry> _entries = [];
   DateTime _selectedDate = DateTime.now();
 
+  DateTime get selectedDate => _selectedDate;
+
   DiaryProvider(this.database);
 
   List<DiaryEntry> get entries => _entries;
