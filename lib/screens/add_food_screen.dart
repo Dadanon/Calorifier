@@ -45,12 +45,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Добавить'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -104,6 +98,23 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   }
 }
 
+String _selectedMealType = 'Перекус';
+final List<String> mealTypes = ['Завтрак', 'Обед', 'Ужин', 'Перекус'];
+
+Widget _buildMealTypeDropdown() {
+  return DropdownButtonFormField<String>(
+    value: _selectedMealType,
+    decoration: InputDecoration(labelText: 'Тип приёма пищи'),
+    items: mealTypes
+        .map((type) => DropdownMenuItem(
+              value: type,
+              child: Text(type),
+            ))
+        .toList(),
+    onChanged: (value) => _selectedMealType = value!,
+  );
+}
+
 class WeightInputDialog extends StatefulWidget {
   final Food food;
 
@@ -120,14 +131,17 @@ class _WeightInputDialogState extends State<WeightInputDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.food.name),
-      content: TextFormField(
-        controller: _controller,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: widget.food.weight == null ? 'Вес/объём' : 'Количество',
-          suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+      content: Column(children: [
+        TextFormField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: widget.food.weight == null ? 'Вес/объём' : 'Количество',
+            suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+          ),
         ),
-      ),
+        _buildMealTypeDropdown()
+      ]),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),

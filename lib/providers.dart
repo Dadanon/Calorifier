@@ -121,11 +121,11 @@ class DiaryProvider with ChangeNotifier {
       if (entry.food.id == updatedFood.id) {
         // Создаём новую запись с обновлённым продуктом
         return DiaryEntry(
-          id: entry.id,
-          food: updatedFood,
-          date: entry.date,
-          weight: entry.weight,
-        );
+            id: entry.id,
+            food: updatedFood,
+            date: entry.date,
+            weight: entry.weight,
+            type: entry.type);
       }
       return entry;
     }).toList();

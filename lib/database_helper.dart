@@ -29,13 +29,21 @@ class DatabaseHelper {
 
         await db.execute('''
           CREATE TABLE recent_foods(
-            food_id INTEGER PRIMARY KEY,
+            food_id INTEGER PRIMARY KEY,r
             count INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY(food_id) REFERENCES foods(id)
           )
         ''');
       },
-      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            ALTER TABLE diary 
+            ADD COLUMN type TEXT NOT NULL DEFAULT 'Перекус'
+          ''');
+        }
+      },
+      version: 2,
     );
     return database;
   }

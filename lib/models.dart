@@ -34,13 +34,14 @@ class DiaryEntry {
   final Food food;
   final DateTime date;
   final int weight;
+  final String type;
 
-  DiaryEntry({
-    required this.id,
-    required this.food,
-    required this.date,
-    required this.weight,
-  });
+  DiaryEntry(
+      {required this.id,
+      required this.food,
+      required this.date,
+      required this.weight,
+      required this.type});
 
   int get kcalTotal {
     if (food.kcalPerHundred != null) {
@@ -56,5 +57,14 @@ class DiaryEntry {
         food: food,
         date: DateTime.parse(map['date']),
         weight: map['weight'],
+        type: map['type'] ?? 'Перекус',
       );
+
+  Map<String, dynamic> toMap() => {
+        'food_id': food.id,
+        'date':
+            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+        'weight': weight,
+        'type': type,
+      };
 }
