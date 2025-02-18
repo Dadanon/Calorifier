@@ -169,10 +169,11 @@ class DiaryProvider with ChangeNotifier {
     await loadEntries(date);
   }
 
-  Future<void> updateEntry(DiaryEntry entry, int newWeight) async {
+  Future<void> updateEntry(
+      DiaryEntry entry, int newWeight, String newType) async {
     await database.update(
       'diary',
-      {'weight': newWeight},
+      {'weight': newWeight, 'type': newType},
       where: 'id = ?',
       whereArgs: [entry.id],
     );

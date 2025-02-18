@@ -115,7 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Consumer<DiaryProvider>(
               builder: (context, provider, child) => ListView.separated(
-                separatorBuilder: (context, index) => Divider(),
+                separatorBuilder: (context, index) => Divider(
+                  height: 0,
+                ),
                 itemCount: provider.entries.length,
                 itemBuilder: (context, index) {
                   final entry = provider.entries[index];
