@@ -7,6 +7,7 @@ class FoodProvider with ChangeNotifier {
   final Database database;
   final DiaryProvider diaryProvider;
   List<Food> _foods = [];
+  List<Food> _filteredFoods = [];
   List<Food> _searchResults = [];
   List<Food> _recentFoods = [];
 
@@ -14,11 +15,29 @@ class FoodProvider with ChangeNotifier {
 
   List<Food> get searchResults => _searchResults;
   List<Food> get recentFoods => _recentFoods;
+  List<Food> get filteredFoods => _filteredFoods;
   List<Food> get foods => _foods;
 
   Future<void> loadFoods() async {
     final List<Map<String, dynamic>> maps = await database.query('foods');
     _foods = maps.map((map) => Food.fromMap(map)).toList();
+    _filteredFoods = foods;
+    notifyListeners();
+  }
+
+  Future<void> filterFoods(String query) async {
+    if (query.isEmpty) {
+      _filteredFoods = foods;
+      notifyListeners();
+      return;
+    }
+
+    final results = await database.query(
+      'foods',
+      where: 'name LIKE ?',
+      whereArgs: ['%$query%'],
+    );
+    _filteredFoods = results.map((map) => Food.fromMap(map)).toList();
     notifyListeners();
   }
 

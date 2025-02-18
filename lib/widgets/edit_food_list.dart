@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:calorifier/models.dart';
 import 'package:calorifier/widgets/edit_food_dialog.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,30 @@ class EditFoodList extends StatefulWidget {
 }
 
 class _EditFoodListState extends State<EditFoodList> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      context.read<FoodProvider>().filterFoods(_searchController.text);
+    });
+    print('Length: ${context.read<FoodProvider>().filteredFoods.length}');
+  }
+
   void _showEditFoodDialog(BuildContext context, Food food) {
     showDialog(
       context: context,
@@ -33,14 +59,21 @@ class _EditFoodListState extends State<EditFoodList> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
+            TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'Поиск',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
             SizedBox(
               height: 400, // Фиксированная высота или MediaQuery
               child: ListView.builder(
                 shrinkWrap: true,
                 physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: provider.foods.length,
+                itemCount: provider.filteredFoods.length,
                 itemBuilder: (context, index) {
-                  final food = provider.foods[index];
+                  final food = provider.filteredFoods[index];
                   return Card(
                       margin: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 8),
