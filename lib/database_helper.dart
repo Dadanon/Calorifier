@@ -9,7 +9,7 @@ class DatabaseHelper {
         await db.execute('''
           CREATE TABLE foods(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
+            name TEXT UNIQUE NOT NULL,
             weight INTEGER,
             kcal_per_hundred INTEGER,
             kcal_total INTEGER,

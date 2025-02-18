@@ -39,12 +39,18 @@ class FoodProvider with ChangeNotifier {
   }
 
   Future<void> addFood(Food food) async {
-    try {
-      await database.insert('foods', food.toMap());
-      await loadFoods();
-    } catch (e) {
-      throw Exception('Такая еда уже существует');
+    final existing = await database.query(
+      'foods',
+      where: 'LOWER(name) = LOWER(?)', // Регистронезависимая проверка
+      whereArgs: [food.name],
+    );
+
+    if (existing.isNotEmpty) {
+      throw Exception('Продукт с названием "${food.name}" уже существует');
     }
+
+    await database.insert('foods', food.toMap());
+    await loadFoods();
   }
 
   Future<void> updateFood(Food updatedFood) async {

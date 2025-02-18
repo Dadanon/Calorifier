@@ -118,7 +118,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Такая еда уже существует')),
+        SnackBar(
+            content: Text('Продукт с названием ${food.name} уже существует')),
       );
     }
   }
