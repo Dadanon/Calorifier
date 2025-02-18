@@ -16,16 +16,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  final GlobalKey _listKey = GlobalKey();
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DiaryProvider>().loadEntries(_selectedDay!);
+  void _handleSwipe(DismissDirection direction) {
+    final offset = direction == DismissDirection.endToStart ? 1 : -1;
+    _updateDate(_selectedDay.add(Duration(days: offset)));
+  }
+
+  void _updateDate(DateTime newDate) {
+    setState(() {
+      _selectedDay = newDate;
+      _focusedDay = newDate;
     });
+    context.read<DiaryProvider>().loadEntries(newDate);
   }
 
   Widget _mealTypeBadge(String type) {
@@ -64,7 +69,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(DateFormat.yMMMMd('ru_RU').format(_focusedDay)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: () =>
+                  _updateDate(_selectedDay.subtract(Duration(days: 1))),
+            ),
+            Text(DateFormat.yMMMMd('ru_RU').format(_selectedDay)),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: () => _updateDate(_selectedDay.add(Duration(days: 1))),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -77,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TableCalendar(
             locale: 'ru_RU',
             calendarFormat: CalendarFormat.twoWeeks,
-            headerStyle: HeaderStyle(formatButtonVisible: false),
+            headerStyle: const HeaderStyle(formatButtonVisible: false),
             firstDay: DateTime(2000),
             lastDay: DateTime(2050),
             focusedDay: _focusedDay,
@@ -101,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     right: 1,
                     bottom: 1,
                     child: Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.blue,
                         shape: BoxShape.circle,
                       ),
@@ -115,30 +134,56 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: Consumer<DiaryProvider>(
-              builder: (context, provider, child) => ListView.separated(
-                separatorBuilder: (context, index) => Divider(
-                  height: 0,
+            child: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity! > 0) {
+                  _handleSwipe(DismissDirection.startToEnd);
+                } else if (details.primaryVelocity! < 0) {
+                  _handleSwipe(DismissDirection.endToStart);
+                }
+              },
+              child: Container(
+                color: Colors.transparent, // Важно для области касания
+                child: Consumer<DiaryProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.entries.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'Нет записей за ${DateFormat.yMMMMd('ru_RU').format(_selectedDay)}',
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      key: _listKey,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 0),
+                      itemCount: provider.entries.length,
+                      itemBuilder: (context, index) {
+                        final entry = provider.entries[index];
+                        return ListTile(
+                          title: Text(entry.food.name),
+                          subtitle: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  entry.food.weight == null
+                                      ? '${entry.weight}г • ${entry.kcalTotal}ккал'
+                                      : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
+                                ),
+                              ),
+                              _mealTypeBadge(entry.type),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _showEditDialog(context, entry),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-                itemCount: provider.entries.length,
-                itemBuilder: (context, index) {
-                  final entry = provider.entries[index];
-                  return ListTile(
-                      title: Text(entry.food.name),
-                      subtitle: Row(spacing: 8, children: [
-                        Expanded(
-                            child: Text(
-                          entry.food.weight == null
-                              ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                              : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
-                        )),
-                        _mealTypeBadge(entry.type),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showEditDialog(context, entry),
-                        )
-                      ]));
-                },
               ),
             ),
           ),
@@ -169,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddFoodScreen(selectedDate: _selectedDay!),
+        builder: (context) => AddFoodScreen(selectedDate: _selectedDay),
       ),
     );
   }
