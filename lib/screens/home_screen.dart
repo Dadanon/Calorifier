@@ -28,6 +28,36 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _mealTypeBadge(String type) {
+    Color bgColor;
+    switch (type) {
+      case 'Завтрак':
+        bgColor = Colors.green;
+      case 'Обед':
+        bgColor = Colors.orange;
+      case 'Ужин':
+        bgColor = Colors.yellow;
+      default:
+        bgColor = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        type,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,22 +114,26 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: Consumer<DiaryProvider>(
-              builder: (context, provider, child) => ListView.builder(
+              builder: (context, provider, child) => ListView.separated(
+                separatorBuilder: (context, index) => Divider(),
                 itemCount: provider.entries.length,
                 itemBuilder: (context, index) {
                   final entry = provider.entries[index];
                   return ListTile(
-                    title: Text(entry.food.name),
-                    subtitle: Text(
-                      entry.food.weight == null
-                          ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                          : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => _showEditDialog(context, entry),
-                    ),
-                  );
+                      title: Text(entry.food.name),
+                      subtitle: Row(spacing: 8, children: [
+                        Expanded(
+                            child: Text(
+                          entry.food.weight == null
+                              ? '${entry.weight}г • ${entry.kcalTotal}ккал'
+                              : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
+                        )),
+                        _mealTypeBadge(entry.type),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showEditDialog(context, entry),
+                        )
+                      ]));
                 },
               ),
             ),

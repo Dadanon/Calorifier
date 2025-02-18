@@ -157,11 +157,13 @@ class DiaryProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addEntry(Food food, DateTime date, int weight) async {
+  Future<void> addEntry(
+      Food food, DateTime date, int weight, String type) async {
     await database.insert('diary', {
       'food_id': food.id,
       'date': _formatDate(date),
       'weight': weight,
+      'type': type
     });
 
     await loadEntries(date);

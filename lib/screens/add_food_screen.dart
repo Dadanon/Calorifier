@@ -83,36 +83,18 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   }
 
   void _addFood(Food food) async {
-    final weight = await showDialog<int>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => WeightInputDialog(food: food),
     );
 
-    if (weight != null && weight > 0) {
-      await context
-          .read<DiaryProvider>()
-          .addEntry(food, widget.selectedDate, weight);
+    if (result != null && result['weight'] > 0) {
+      await context.read<DiaryProvider>().addEntry(
+          food, widget.selectedDate, result['weight'], result['type']);
       context.read<FoodProvider>().incrementRecent(food);
       Navigator.pop(context);
     }
   }
-}
-
-String _selectedMealType = 'Перекус';
-final List<String> mealTypes = ['Завтрак', 'Обед', 'Ужин', 'Перекус'];
-
-Widget _buildMealTypeDropdown() {
-  return DropdownButtonFormField<String>(
-    value: _selectedMealType,
-    decoration: InputDecoration(labelText: 'Тип приёма пищи'),
-    items: mealTypes
-        .map((type) => DropdownMenuItem(
-              value: type,
-              child: Text(type),
-            ))
-        .toList(),
-    onChanged: (value) => _selectedMealType = value!,
-  );
 }
 
 class WeightInputDialog extends StatefulWidget {
@@ -126,22 +108,41 @@ class WeightInputDialog extends StatefulWidget {
 
 class _WeightInputDialogState extends State<WeightInputDialog> {
   final _controller = TextEditingController();
+  String _selectedMealType = 'Перекус'; // Переносим состояние в виджет
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.food.name),
-      content: Column(children: [
-        TextFormField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: widget.food.weight == null ? 'Вес/объём' : 'Количество',
-            suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: _controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText:
+                  widget.food.weight == null ? 'Вес/объём' : 'Количество',
+              suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+            ),
           ),
-        ),
-        _buildMealTypeDropdown()
-      ]),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedMealType,
+            decoration: const InputDecoration(
+              labelText: 'Тип приёма пищи',
+              border: OutlineInputBorder(),
+            ),
+            items: ['Завтрак', 'Обед', 'Ужин', 'Перекус']
+                .map((type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedMealType = value!),
+          ),
+        ],
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -150,7 +151,10 @@ class _WeightInputDialogState extends State<WeightInputDialog> {
         TextButton(
           onPressed: () {
             final value = int.tryParse(_controller.text) ?? 0;
-            Navigator.pop(context, value);
+            Navigator.pop(context, {
+              'weight': value,
+              'type': _selectedMealType,
+            });
           },
           child: const Text('Добавить'),
         ),
