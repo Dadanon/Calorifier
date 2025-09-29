@@ -28,78 +28,81 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text('Создать'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveFood,
+    return SafeArea(
+        child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Создать'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.save),
+                  onPressed: _saveFood,
+                ),
+              ],
             ),
-          ],
-        ),
-        body: SingleChildScrollView(
-            child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Название'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Введите имя продукта' : null,
-                  ),
-                  SwitchListTile(
-                    title: const Text('Порция'),
-                    value: _isPortionBased,
-                    onChanged: (value) =>
-                        setState(() => _isPortionBased = value),
-                  ),
-                  if (_isPortionBased)
-                    TextFormField(
-                      controller: _kcalController,
-                      decoration: const InputDecoration(
-                        labelText: 'Ккал на 100г/мл',
-                        suffixText: 'ккал',
+            body: SingleChildScrollView(
+                child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration:
+                            const InputDecoration(labelText: 'Название'),
+                        validator: (value) =>
+                            value!.isEmpty ? 'Введите имя продукта' : null,
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) =>
-                          value!.isEmpty ? 'Введите значение' : null,
-                    )
-                  else
-                    Column(
-                      children: [
-                        TextFormField(
-                          controller: _weightController,
-                          decoration: const InputDecoration(
-                            labelText: 'Вес/объём',
-                            suffixText: 'г/мл',
-                          ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) =>
-                              value!.isEmpty ? 'Введите вес продукта' : null,
-                        ),
+                      SwitchListTile(
+                        title: const Text('Порция'),
+                        value: _isPortionBased,
+                        onChanged: (value) =>
+                            setState(() => _isPortionBased = value),
+                      ),
+                      if (_isPortionBased)
                         TextFormField(
                           controller: _kcalController,
                           decoration: const InputDecoration(
-                            labelText: 'Общая калорийность',
+                            labelText: 'Ккал на 100г/мл',
                             suffixText: 'ккал',
                           ),
                           keyboardType: TextInputType.number,
                           validator: (value) =>
                               value!.isEmpty ? 'Введите значение' : null,
+                        )
+                      else
+                        Column(
+                          children: [
+                            TextFormField(
+                              controller: _weightController,
+                              decoration: const InputDecoration(
+                                labelText: 'Вес/объём',
+                                suffixText: 'г/мл',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) => value!.isEmpty
+                                  ? 'Введите вес продукта'
+                                  : null,
+                            ),
+                            TextFormField(
+                              controller: _kcalController,
+                              decoration: const InputDecoration(
+                                labelText: 'Общая калорийность',
+                                suffixText: 'ккал',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) =>
+                                  value!.isEmpty ? 'Введите значение' : null,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          EditFoodList()
-        ])));
+              EditFoodList()
+            ]))));
   }
 
   void _saveFood() async {

@@ -67,163 +67,171 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(DateFormat.yMMMMd('ru_RU').format(_selectedDay)),
-            ],
-          ),
-        ),
-        body: Column(
-          children: [
-            TableCalendar(
-              calendarStyle: CalendarStyle(),
-              availableGestures: AvailableGestures.horizontalSwipe,
-              headerStyle: HeaderStyle(
-                  leftChevronIcon: Container(),
-                  rightChevronIcon: Container(),
-                  formatButtonVisible: false,
-                  titleCentered: true, // ← центрируем заголовок
-                  titleTextFormatter: (date, locale) {
-                    final monthFormat = DateFormat('MMMM', locale);
-                    final month = monthFormat.format(date);
-                    final yearFormat = DateFormat('yyyy', locale);
-                    final year = yearFormat.format(date);
-                    // Делаем первую букву заглавной
-                    if (month.isNotEmpty) {
-                      return '${month[0].toUpperCase() + month.substring(1)} $year';
-                    }
-                    return '$month $year';
-                  }),
-              locale: 'ru_RU',
-              calendarFormat: CalendarFormat.twoWeeks,
-              firstDay: DateTime(2000),
-              lastDay: DateTime(2050),
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-                context.read<DiaryProvider>().loadEntries(selectedDay);
-              },
-              onPageChanged: (focusedDay) => _focusedDay = focusedDay,
-              eventLoader: (day) {
-                final entries = context.read<DiaryProvider>().entries;
-                return entries.any((e) => isSameDay(e.date, day)) ? [day] : [];
-              },
-              calendarBuilders: CalendarBuilders(
-                markerBuilder: (context, date, events) {
-                  if (events.isNotEmpty) {
-                    return Positioned(
-                      right: 1,
-                      bottom: 1,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                        ),
-                        width: 8,
-                        height: 8,
-                      ),
-                    );
-                  }
-                  return null;
-                },
+    return SafeArea(
+        child: Scaffold(
+            appBar: AppBar(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(DateFormat.yMMMMd('ru_RU').format(_selectedDay)),
+                ],
               ),
             ),
-            Expanded(
-              child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity! > 0) {
-                    _handleSwipe(DismissDirection.startToEnd);
-                  } else if (details.primaryVelocity! < 0) {
-                    _handleSwipe(DismissDirection.endToStart);
-                  }
-                },
-                child: Container(
-                  color: Colors.transparent, // Важно для области касания
-                  child: Consumer<DiaryProvider>(
-                    builder: (context, provider, child) {
-                      if (provider.entries.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'Нет записей за ${DateFormat.yMMMMd('ru_RU').format(_selectedDay)}',
-                            textAlign: TextAlign.center,
+            body: Column(
+              children: [
+                TableCalendar(
+                  calendarStyle: CalendarStyle(),
+                  availableGestures: AvailableGestures.horizontalSwipe,
+                  headerStyle: HeaderStyle(
+                      leftChevronIcon: Container(),
+                      rightChevronIcon: Container(),
+                      formatButtonVisible: false,
+                      titleCentered: true, // ← центрируем заголовок
+                      titleTextFormatter: (date, locale) {
+                        final monthFormat = DateFormat('MMMM', locale);
+                        final month = monthFormat.format(date);
+                        final yearFormat = DateFormat('yyyy', locale);
+                        final year = yearFormat.format(date);
+                        // Делаем первую букву заглавной
+                        if (month.isNotEmpty) {
+                          return '${month[0].toUpperCase() + month.substring(1)} $year';
+                        }
+                        return '$month $year';
+                      }),
+                  locale: 'ru_RU',
+                  calendarFormat: CalendarFormat.twoWeeks,
+                  firstDay: DateTime(2000),
+                  lastDay: DateTime(2050),
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                    context.read<DiaryProvider>().loadEntries(selectedDay);
+                  },
+                  onPageChanged: (focusedDay) => _focusedDay = focusedDay,
+                  eventLoader: (day) {
+                    final entries = context.read<DiaryProvider>().entries;
+                    return entries.any((e) => isSameDay(e.date, day))
+                        ? [day]
+                        : [];
+                  },
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, date, events) {
+                      if (events.isNotEmpty) {
+                        return Positioned(
+                          right: 1,
+                          bottom: 1,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            width: 8,
+                            height: 8,
                           ),
                         );
                       }
-                      return ListView.separated(
-                        key: _listKey,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 0),
-                        itemCount: provider.entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = provider.entries[index];
-                          return ListTile(
-                            title: Text(entry.food.name),
-                            subtitle: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    entry.food.weight == null
-                                        ? '${entry.weight}г • ${entry.kcalTotal}ккал'
-                                        : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
-                                  ),
-                                ),
-                                _mealTypeBadge(entry.type),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _showEditDialog(context, entry),
-                            ),
-                          );
-                        },
-                      );
+                      return null;
                     },
                   ),
                 ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _navigateToCreateFood(context),
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(12),
-                    backgroundColor: const Color.fromARGB(255, 159, 168, 218),
-                    elevation: 6,
+                Expanded(
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      if (details.primaryVelocity! > 0) {
+                        _handleSwipe(DismissDirection.startToEnd);
+                      } else if (details.primaryVelocity! < 0) {
+                        _handleSwipe(DismissDirection.endToStart);
+                      }
+                    },
+                    child: Container(
+                      color: Colors.transparent, // Важно для области касания
+                      child: Consumer<DiaryProvider>(
+                        builder: (context, provider, child) {
+                          if (provider.entries.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'Нет записей за ${DateFormat.yMMMMd('ru_RU').format(_selectedDay)}',
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return ListView.separated(
+                            key: _listKey,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 0),
+                            itemCount: provider.entries.length,
+                            itemBuilder: (context, index) {
+                              final entry = provider.entries[index];
+                              return ListTile(
+                                title: Text(entry.food.name),
+                                subtitle: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        entry.food.weight == null
+                                            ? '${entry.weight}г • ${entry.kcalTotal}ккал'
+                                            : '${entry.weight * entry.food.weight!}г • ${entry.kcalTotal}ккал',
+                                      ),
+                                    ),
+                                    _mealTypeBadge(entry.type),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () =>
+                                      _showEditDialog(context, entry),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  child: const Icon(Icons.edit, size: 24, color: Colors.white),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Всего: ${context.watch<DiaryProvider>().totalKcal} ккал',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () => _navigateToAddFood(context),
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(12),
-                    backgroundColor: const Color.fromARGB(255, 92, 107, 192),
-                    elevation: 6,
-                  ),
-                  child: const Icon(Icons.add, size: 24, color: Colors.white),
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => _navigateToCreateFood(context),
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(12),
+                        backgroundColor:
+                            const Color.fromARGB(255, 159, 168, 218),
+                        elevation: 6,
+                      ),
+                      child:
+                          const Icon(Icons.edit, size: 24, color: Colors.white),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Всего: ${context.watch<DiaryProvider>().totalKcal} ккал',
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _navigateToAddFood(context),
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(12),
+                        backgroundColor:
+                            const Color.fromARGB(255, 92, 107, 192),
+                        elevation: 6,
+                      ),
+                      child:
+                          const Icon(Icons.add, size: 24, color: Colors.white),
+                    ),
+                  ],
+                )
               ],
-            )
-          ],
-        ));
+            )));
   }
 
   void _navigateToCreateFood(BuildContext context) {

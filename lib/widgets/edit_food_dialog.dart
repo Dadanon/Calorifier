@@ -93,6 +93,8 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
       content: Form(
         key: _formKey,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFormField(
               controller: _nameController,

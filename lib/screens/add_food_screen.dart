@@ -16,6 +16,7 @@ class AddFoodScreen extends StatefulWidget {
 }
 
 class _AddFoodScreenState extends State<AddFoodScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -30,13 +31,17 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      context.read<FoodProvider>().searchFoods(_searchController.text);
+      final query = _searchController.text.trim();
+      if (query.isNotEmpty) {
+        context.read<FoodProvider>().searchFoods(query);
+      }
     });
   }
 
@@ -55,30 +60,48 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
               decoration: const InputDecoration(
                 labelText: 'Поиск',
                 prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
               ),
+              onChanged: (_) => setState(() {}),
             ),
           ),
           Expanded(
-            child: Consumer<FoodProvider>(
-              builder: (context, provider, child) {
-                if (_searchController.text.isEmpty) {
-                  return ListView.builder(
-                    itemCount: provider.recentFoods.length,
-                    itemBuilder: (context, index) => _FoodItem(
-                      food: provider.recentFoods[index],
-                      onAdd: () => _addFood(provider.recentFoods[index]),
-                    ),
-                  );
-                }
-                return SearchFoodList(
-                  foods: provider.searchResults,
-                  onAdd: _addFood,
-                );
-              },
-            ),
+            child: _buildFoodList(context),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFoodList(BuildContext context) {
+    return Consumer<FoodProvider>(
+      builder: (context, provider, child) {
+        final isSearching = _searchController.text.trim().isNotEmpty;
+        final hasRecent = provider.recentFoods.isNotEmpty;
+        final hasSearchResults = provider.searchResults.isNotEmpty;
+
+        if (isSearching) {
+          if (!hasSearchResults) {
+            return const Center(child: Text('Ничего не найдено'));
+          }
+          return SearchFoodList(
+            foods: provider.searchResults,
+            onAdd: _addFood,
+          );
+        }
+
+        if (!hasRecent) {
+          return const Center(child: Text('Нет недавних продуктов'));
+        }
+
+        return ListView.builder(
+          itemCount: provider.recentFoods.length,
+          itemBuilder: (context, index) => _FoodItem(
+            food: provider.recentFoods[index],
+            onAdd: () => _addFood(provider.recentFoods[index]),
+          ),
+        );
+      },
     );
   }
 
@@ -88,11 +111,28 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
       builder: (context) => WeightInputDialog(food: food),
     );
 
-    if (result != null && result['weight'] > 0) {
-      await context.read<DiaryProvider>().addEntry(
-          food, widget.selectedDate, result['weight'], result['type']);
-      context.read<FoodProvider>().incrementRecent(food);
-      Navigator.pop(context);
+    if (result == null) return;
+
+    final weight = result['weight'] as int?;
+    final type = result['type'] as String?;
+
+    if (weight == null || weight <= 0 || type == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Некорректные данные')),
+      );
+      return;
+    }
+
+    try {
+      await context
+          .read<DiaryProvider>()
+          .addEntry(food, widget.selectedDate, weight, type);
+      await context.read<FoodProvider>().incrementRecent(food);
+      if (mounted) Navigator.pop(context); // защита от unmounted
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: $e')),
+      );
     }
   }
 }
@@ -107,59 +147,94 @@ class WeightInputDialog extends StatefulWidget {
 }
 
 class _WeightInputDialogState extends State<WeightInputDialog> {
-  final _controller = TextEditingController();
+  late final TextEditingController _controller;
   String _selectedMealType = 'Перекус'; // Переносим состояние в виджет
 
   @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.food.name),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            controller: _controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText:
-                  widget.food.weight == null ? 'Вес/объём' : 'Количество',
-              suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+    return SafeArea(
+        child: Scaffold(
+      body: AlertDialog(
+        title: Text(widget.food.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText:
+                    widget.food.weight == null ? 'Вес/объём' : 'Количество',
+                suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Обязательно';
+                final n = int.tryParse(value);
+                if (n == null || n <= 0) return 'Введите число > 0';
+                return null;
+              },
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedMealType,
+              decoration: const InputDecoration(
+                labelText: 'Тип приёма пищи',
+                border: OutlineInputBorder(),
+              ),
+              items: ['Завтрак', 'Обед', 'Ужин', 'Перекус']
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(type),
+                      ))
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedMealType = value!),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Отмена'),
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: _selectedMealType,
-            decoration: const InputDecoration(
-              labelText: 'Тип приёма пищи',
-              border: OutlineInputBorder(),
-            ),
-            items: ['Завтрак', 'Обед', 'Ужин', 'Перекус']
-                .map((type) => DropdownMenuItem(
-                      value: type,
-                      child: Text(type),
-                    ))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedMealType = value!),
+          ElevatedButton(
+            onPressed: () {
+              final input = _controller.text.trim();
+              if (input.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Введите вес')),
+                );
+                return;
+              }
+              final value = int.tryParse(input);
+              if (value == null || value <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Введите корректный вес (> 0)')),
+                );
+                return;
+              }
+              Navigator.pop(context, {
+                'weight': value,
+                'type': _selectedMealType,
+              });
+            },
+            child: const Text('Добавить'),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Отмена'),
-        ),
-        TextButton(
-          onPressed: () {
-            final value = int.tryParse(_controller.text) ?? 0;
-            Navigator.pop(context, {
-              'weight': value,
-              'type': _selectedMealType,
-            });
-          },
-          child: const Text('Добавить'),
-        ),
-      ],
-    );
+    ));
   }
 }
 
@@ -171,14 +246,23 @@ class _FoodItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(food.name),
-      subtitle: Text(food.kcalPerHundred != null
-          ? '${food.kcalPerHundred} ккал/100г'
-          : '${food.weight}г • ${food.kcalTotal} ккал'),
-      trailing: IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: onAdd,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        title: Text(
+          food.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          food.kcalPerHundred != null
+              ? '${food.kcalPerHundred} ккал/100г'
+              : '${food.weight}г • ${food.kcalTotal} ккал',
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.add_circle, color: Colors.green),
+          onPressed: onAdd,
+        ),
       ),
     );
   }
