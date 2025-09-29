@@ -62,6 +62,9 @@ class _EditEntryDialogState extends State<EditEntryDialog> {
         TextButton(
           onPressed: () async {
             await context.read<DiaryProvider>().deleteEntry(widget.entry);
+            await context
+                .read<FoodProvider>()
+                .decrementRecent(widget.entry.food);
             Navigator.pop(context);
           },
           child: const Text('Удалить', style: TextStyle(color: Colors.red)),

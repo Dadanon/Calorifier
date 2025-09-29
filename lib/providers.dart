@@ -103,12 +103,13 @@ class FoodProvider with ChangeNotifier {
       orderBy: 'count DESC',
       limit: 10,
     );
+    print('Maps: $maps');
 
-    _recentFoods = await Future.wait(maps.map((map) async {
+    _recentFoods = await Future.wait(maps.map((m) async {
       final foodMap = await database.query(
         'foods',
         where: 'id = ?',
-        whereArgs: [map['food_id']],
+        whereArgs: [m['food_id']],
       );
       return Food.fromMap(foodMap.first);
     }));
@@ -117,15 +118,37 @@ class FoodProvider with ChangeNotifier {
   }
 
   Future<void> incrementRecent(Food food) async {
-    await database.insert(
-      'recent_foods',
-      {'food_id': food.id, 'count': 1},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await database.rawUpdate(
-      'UPDATE recent_foods SET count = count + 1 WHERE food_id = ?',
-      [food.id],
-    );
+    final recentExistList = await database
+        .query('recent_foods', where: 'food_id = ?', whereArgs: [food.id]);
+    if (recentExistList.isEmpty) {
+      // Запись в таблице recent_foods отсутствует, добавляем новую
+      await database.insert('recent_foods', {'food_id': food.id, 'count': 1});
+    } else {
+      // Запись в таблице recent_foods есть, инкрементируем count
+      await database.rawUpdate(
+        'UPDATE recent_foods SET count = count + 1 WHERE food_id = ?',
+        [food.id],
+      );
+    }
+    await loadRecentFoods();
+  }
+
+  Future<void> decrementRecent(Food food) async {
+    final recentExistList = await database
+        .query('recent_foods', where: 'food_id = ?', whereArgs: [food.id]);
+    if (recentExistList.isNotEmpty) {
+      // Запись в таблице recent_foods присутствует, смотрим count
+      final count = int.parse(recentExistList.first['count'].toString());
+      if (count == 1) {
+        // Удаляем запись
+        await deleteRelatedRecentFoods(food.id);
+      } else {
+        // Понижаем count
+        await database.rawUpdate(
+            'UPDATE recent_foods SET count = count - 1 WHERE food_id = ?',
+            [food.id]);
+      }
+    }
     await loadRecentFoods();
   }
 }

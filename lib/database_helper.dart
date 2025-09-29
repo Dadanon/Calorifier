@@ -29,7 +29,7 @@ class DatabaseHelper {
 
         await db.execute('''
           CREATE TABLE recent_foods(
-            food_id INTEGER PRIMARY KEY,r
+            food_id INTEGER PRIMARY KEY,
             count INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY(food_id) REFERENCES foods(id)
           )
