@@ -142,10 +142,30 @@ class _EditFoodDialogState extends State<EditFoodDialog> {
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: () => _deleteFood(), child: const Text('Удалить')),
-        TextButton(
-            onPressed: () => _updateFood(), child: const Text('Изменить')),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+                onPressed: () => _deleteFood(),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                  size: 32,
+                )),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Icon(
+                  Icons.cancel,
+                  size: 32,
+                )),
+            TextButton(
+                onPressed: () => _updateFood(),
+                child: const Icon(
+                  Icons.edit,
+                  size: 32,
+                )),
+          ],
+        ),
       ],
     );
   }

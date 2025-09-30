@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers.dart';
 import '../models.dart';
+import '../widgets/add_entry_dialog.dart';
+import '../widgets/food_item.dart';
 import '../widgets/search_food_list.dart';
 
 class AddFoodScreen extends StatefulWidget {
@@ -49,7 +51,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Добавить'),
+        title: const Text('Добавить запись'),
       ),
       body: Column(
         children: [
@@ -96,7 +98,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
         return ListView.builder(
           itemCount: provider.recentFoods.length,
-          itemBuilder: (context, index) => _FoodItem(
+          itemBuilder: (context, index) => FoodItem(
             food: provider.recentFoods[index],
             onAdd: () => _addFood(provider.recentFoods[index]),
           ),
@@ -108,7 +110,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   void _addFood(Food food) async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => WeightInputDialog(food: food),
+      builder: (context) => AddEntryDialog(food: food),
     );
 
     if (result == null) return;
@@ -134,136 +136,5 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
         SnackBar(content: Text('Ошибка: $e')),
       );
     }
-  }
-}
-
-class WeightInputDialog extends StatefulWidget {
-  final Food food;
-
-  const WeightInputDialog({super.key, required this.food});
-
-  @override
-  _WeightInputDialogState createState() => _WeightInputDialogState();
-}
-
-class _WeightInputDialogState extends State<WeightInputDialog> {
-  late final TextEditingController _controller;
-  String _selectedMealType = 'Перекус'; // Переносим состояние в виджет
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
-      body: AlertDialog(
-        title: Text(widget.food.name),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText:
-                    widget.food.weight == null ? 'Вес/объём' : 'Количество',
-                suffixText: widget.food.weight == null ? 'г/мл' : 'шт.',
-                border: const OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Обязательно';
-                final n = int.tryParse(value);
-                if (n == null || n <= 0) return 'Введите число > 0';
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedMealType,
-              decoration: const InputDecoration(
-                labelText: 'Тип приёма пищи',
-                border: OutlineInputBorder(),
-              ),
-              items: ['Завтрак', 'Обед', 'Ужин', 'Перекус']
-                  .map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      ))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedMealType = value!),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final input = _controller.text.trim();
-              if (input.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Введите вес')),
-                );
-                return;
-              }
-              final value = int.tryParse(input);
-              if (value == null || value <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Введите корректный вес (> 0)')),
-                );
-                return;
-              }
-              Navigator.pop(context, {
-                'weight': value,
-                'type': _selectedMealType,
-              });
-            },
-            child: const Text('Добавить'),
-          ),
-        ],
-      ),
-    ));
-  }
-}
-
-class _FoodItem extends StatelessWidget {
-  final Food food;
-  final VoidCallback onAdd;
-
-  const _FoodItem({required this.food, required this.onAdd});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        title: Text(
-          food.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          food.kcalPerHundred != null
-              ? '${food.kcalPerHundred} ккал/100г'
-              : '${food.weight}г • ${food.kcalTotal} ккал',
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.add_circle, color: Colors.green),
-          onPressed: onAdd,
-        ),
-      ),
-    );
   }
 }

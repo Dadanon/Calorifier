@@ -74,26 +74,34 @@ class _EditFoodListState extends State<EditFoodList> {
                 itemCount: provider.filteredFoods.length,
                 itemBuilder: (context, index) {
                   final food = provider.filteredFoods[index];
+
                   return Card(
                       margin: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 8),
                       child: ListTile(
-                        title: Text(food.name,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(food.name,
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold))
+                          ],
+                        ),
                         subtitle: Row(
                           children: [
                             if (food.weight != null)
                               Text('${food.weight}г. * '),
                             if (food.kcalPerHundred != null)
-                              Text('${food.kcalPerHundred} ккал/100г'),
+                              Expanded(
+                                  child:
+                                      Text('${food.kcalPerHundred} ккал/100г')),
                             if (food.kcalTotal != null)
-                              Text('${food.kcalTotal}ккал')
+                              Expanded(child: Text('${food.kcalTotal}ккал')),
+                            IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () =>
+                                    _showEditFoodDialog(context, food)),
                           ],
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () => _showEditFoodDialog(context, food),
                         ),
                       ));
                 },

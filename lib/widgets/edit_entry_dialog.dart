@@ -1,3 +1,6 @@
+import 'package:calorifier/widgets/icons/cancel_icon.dart';
+import 'package:calorifier/widgets/icons/delete_icon.dart';
+import 'package:calorifier/widgets/icons/save_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers.dart';
@@ -25,7 +28,15 @@ class _EditEntryDialogState extends State<EditEntryDialog> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isCompact =
+        MediaQuery.of(context).size.width < 360; // Порог для "узких" экранов
     return AlertDialog(
       title: Text('Изменить ${widget.entry.food.name}'),
       content: Column(
@@ -59,34 +70,39 @@ class _EditEntryDialogState extends State<EditEntryDialog> {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () async {
-            await context.read<DiaryProvider>().deleteEntry(widget.entry);
-            await context
-                .read<FoodProvider>()
-                .decrementRecent(widget.entry.food);
-            Navigator.pop(context);
-          },
-          child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Отмена'),
-        ),
-        TextButton(
-          onPressed: () {
-            final newWeight = int.tryParse(_controller.text) ?? 0;
-            if (newWeight > 0) {
-              context.read<DiaryProvider>().updateEntry(
-                    widget.entry,
-                    newWeight,
-                    _selectedMealType, // Передаем новый тип
-                  );
-              Navigator.pop(context);
-            }
-          },
-          child: const Text('Сохранить'),
-        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () async {
+                await context.read<DiaryProvider>().deleteEntry(widget.entry);
+                await context
+                    .read<FoodProvider>()
+                    .decrementRecent(widget.entry.food);
+                Navigator.pop(context);
+              },
+              child: deleteIcon(),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: cancelIcon(),
+            ),
+            TextButton(
+              onPressed: () {
+                final newWeight = int.tryParse(_controller.text) ?? 0;
+                if (newWeight > 0) {
+                  context.read<DiaryProvider>().updateEntry(
+                        widget.entry,
+                        newWeight,
+                        _selectedMealType, // Передаем новый тип
+                      );
+                  Navigator.pop(context);
+                }
+              },
+              child: saveIcon(),
+            ),
+          ],
+        )
       ],
     );
   }
